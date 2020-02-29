@@ -1,344 +1,151 @@
-# Modern Python3 Boilerplate with tooling
+# tf-pose-estimation
 
-This is a template to start a python project using a Test Driven Development (TDD) approach
+'Openpose', human pose estimation algorithm, have been implemented using Tensorflow. It also provides several variants that have some changes to the network structure for **real-time processing on the CPU or low-power embedded devices.**
 
-## Install the pre-requisites
+**You can even run this on your macbook with a descent FPS!**
 
-1. Python version 3
-1. Pipenv - Python virtual environment
+Original Repo(Caffe) : https://github.com/CMU-Perceptual-Computing-Lab/openpose
 
-## Installation steps
+| CMU's Original Model</br> on Macbook Pro 15" | Mobilenet-thin </br>on Macbook Pro 15" | Mobilenet-thin</br>on Jetson TX2 |
+|:---------|:--------------------|:----------------|
+| ![cmu-model](/etcs/openpose_macbook_cmu.gif)     | ![mb-model-macbook](/etcs/openpose_macbook_mobilenet3.gif) | ![mb-model-tx2](/etcs/openpose_tx2_mobilenet3.gif) |
+| **~0.6 FPS** | **~4.2 FPS** @ 368x368 | **~10 FPS** @ 368x368 |
+| 2.8GHz Quad-core i7 | 2.8GHz Quad-core i7 | Jetson TX2 Embedded Board | 
 
-### 1. Python3
+Implemented features are listed here : [features](./etcs/feature.md)
 
-Make sure you have Python installed and it's availible from your command line. You can check if it's installed and determine it's version by running:
+## Important Updates
 
-```sh
-python --version
-```
+- 2019.3.12 Add new models using mobilenet-v2 architecture. See : [experiments.md](./etcs/experiments.md)
+- 2018.5.21 Post-processing part is implemented in c++. It is required compiling the part. See: https://github.com/ildoonet/tf-pose-estimation/tree/master/src/pafprocess
+- 2018.2.7 Arguments in run.py script changed. Support dynamic input size.
 
-You shoud get some output like `3.6.2` If you don't have this version of Python, please install the latest `3.x` version.
+## Install
 
-To install python 3 on a Mac
+### Dependencies
 
-```sh
-brew install python3
-```
+You need dependencies below.
 
-<details><summary><strong>Installation of Python3 on other platforms</strong></summary>
-To [install Python3 on RHEL](https://developers.redhat.com/blog/2018/08/13/install-python3-rhel/)
+- python3
+- tensorflow 1.4.1+
+- opencv3, protobuf, python3-tk
+- slidingwindow
+  - https://github.com/adamrehn/slidingwindow
+  - I copied from the above git repo to modify few things.
 
-To [install Python3 on Ubuntu](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-18-04-server)
-
-To [install Python3 on Windows](https://phoenixnap.com/kb/how-to-install-python-3-windows)
-
-To install Python on any other platform take a look at the [Installing Python](https://docs.python-guide.org/starting/installation/) section of **_The Hitchhikers Guide to Python_** or refer to [python.org](http://python.org)
-
-</details>
-
-### 2. Pipenv - Python virtual environment
-
-To check you have pipenv installed run the following:
-
-```sh
-pipenv --version
-```
-
-You should see something like `version 2018.11.26` if not please setup the latest version of pipenv as follows.
-
-To install pipenv on a Mac using brew
-
-```sh
-brew install pipenv
-```
-
-<details><summary><strong>Installation of Pipenv on other platforms</strong></summary>
-
-> If you have a working installation of pip, and maintain certain “toolchain” type Python modules as global utilities in your user environment, pip user installs allow for installation into your home directory. Note that due to interaction between dependencies, you should limit tools installed in this way to basic building blocks for a Python workflow like virtualenv, pipenv, tox, and similar software.
-
-To install pipenv on anyplatform with `pip`
-
-```sh
-pip install --user pipenv
-
-#or
-# todo: validate this
-python3 -m pip install pipenv
-
-```
-
-For more detailed instruction [see here](https://pipenv-fork.readthedocs.io/en/latest/install.html#installing-pipenv)
-
-</details>
-
-It is a best practice to use use Python virtual environments to isolate project-specific dependencies and create reproducible environments.
-
-<details><summary><strong>Read more about Pipenv and Virtual Environments</strong></summary>
-
-### Pipenv Features
-
-- Pipenv is a production-ready tool that aims to bring the best of all packaging worlds to the Python world. It harnesses Pipfile, pip, and virtualenv into one single command.
-
-- Enables truly **_deterministic builds_**, while specifying only what is needed.
-
-- With pipenv you no longer need to use `pip` and `venv` separately.
-
-* Setting a virtual environment to separate each project from affecting other projects and the rest of your operating system's a good idea. You may be making changes in your virtual environment that could have unintended consequences.
-
-Learn more about Pipenv [here](https://pipenv-fork.readthedocs.io/en/latest/)
-
-</details>
-
-### Intializing a `pipenv` Python Virtual Environment
-
-How does one setup a Python Virtual Environment using `pipenv`?
-
-#### What is a virutal env
-
-It's a copy of a physically installed version of python already have, so say you have python3 install via brew or some other method, you can find this by typing
-
-```sh
-which python3
-echo '/usr/local/bin/python3'
-```
-
-#### You may be asking yourself where your new virtual environment is stored?
-
-Ordinarilly, by default, the `pipenv` virutal enviroments is written to a global (your user's home ) dirctory. The issue here is if you move your project directory this will corrupt the virutal environment.
-
-So never fear!
-
-```sh
-
-export PIPENV_VENV_IN_PROJECT=1
-# save this line to your ~/.bashrc or ~/.zshrc or equivalent
-```
-
-### Creating a new Pipenv Python3 Virtual Environment
-
-At your command line `cd` to the `root directory` of the currency exchange.
-
-```sh
-cd src/currencyexchange
-pipenv install --three
-```
-
-You should now confirm the new local to your project, `Pipenv` Python Virtual Environment by output similar to this:
-
-![check with pipenv](./doc/images/pipenv-install-three.png)
-
-So great! Now pipenv created a virtual environment and created a `Pipfile` and a `Pipfile.lock`
-
-Check!
-
-```sh
-pipenv check
-```
-
-Output should confirm all is good!
-
-![check with pipenv](./doc/images/pipenv-check.png)
-
-You can also confirm the virtual environment is setup by confirming a new file called `Pipfile` exists at the root directory.
-
-Even though the `pipenv` virtual environment is setup, you still need to **_activate_** it. This is simply done by running:
-
-```sh
-pipenv shell
-```
-
-![activate pipenv](./doc/images/pipenv-activate-shell.png)
-
-To exit the `Pipenv` Python Virtual environment simply type `exit`
-
-### Setting up tooling for Testing
-
-#### Setting up the pytest unit-test framework
-
-> pytest is a no-boilerplate alternative to Python’s standard unittest module
-
-```sh
-pipenv install --dev pytest
-```
-
-`pytest` is used to write tests first and begin our journey towards Test Driven Development, been a fully-featured and extensible test tool, it boasts a simple syntax. Creating a test suite is as easy as writing a module with a couple of functions:
-
-```python
-#contents of tests/unit/test_sample.py
-def plusOne(x):
-    return x + 1
-
-def test_simple():
-    assert plusOne(7) == 8
-```
-
-the test is run by running the pytest command.
-
-```sh
-pytest tests/unit/test_sample.py
-```
-
-![pytest running sample test in pipenv](./doc/images/pytest-running-test-in-pipenv.png)
-
-### Code stylers and formatters
-
-`Flake8` is a command-line utility for enforcing style consistency across Python projects.
-
-<details><summary><strong>learn more about flake8</strong></summary>
-
-> [Flake8](https://flake8.pycqa.org/en/latest/index.html), by default it includes lint checks provided by the PyFlakes project, PEP-0008 inspired style checks provided by the PyCodeStyle project, and McCabe complexity checking provided by the McCabe project. It will also run third-party extensions if they are found and installed.
-
-</details>
-
-`Black` is a Python formatting tool.
-
-<details><summary><strong>learn more about Black</strong></summary>
-> By using Black, you agree to cede control over minutiae of hand-formatting. In return, Black gives you speed, determinism, and freedom from pycodestyle nagging about formatting. You will save time and mental energy for more important matters.
-
-> Black makes code review faster by producing the smallest diffs possible. Blackened code looks the same regardless of the project you’re reading. Formatting becomes transparent after a while and you can focus on the content instead.
-
-[Read the Black documentation](https://black.readthedocs.io/en/stable/) for more information
-
-</details>
-
-To install these:
-
-```sh
-pipenv install --dev flake8 black==19.10b0
-```
-
-### Version Control Integration - black + flake8 with git pre-commit hooks
-
-Git hook scripts are useful for identifying simple issues before submission to code review.
-
-<details><summary><strong>Learn more about pre-commit</strong></summary>
-
-> "... We run our hooks on every commit to automatically point out issues in code such as missing semicolons, trailing whitespace, and debug statements. By pointing these issues out before code review, this allows a code reviewer to focus on the architecture of a change while not wasting time with trivial style nitpicks."
-
-[quote from](https://pre-commit.com/)
-
-</details>
-
-Add new python packages:
-
-```sh
-pipenv install --dev pre-commit
-pipenv install --dev flake8-bugbear
-```
-
-#### add [scripts] block to pipfile for pre-commit hook
+### Pre-Install Jetson case
 
 ```bash
-[scripts]
-# Install the pre-commit hook
-setup_dev = "sh -c \"pre-commit install\""
+$ sudo apt-get install libllvm-7-ocaml-dev libllvm7 llvm-7 llvm-7-dev llvm-7-doc llvm-7-examples llvm-7-runtime
+$ export LLVM_CONFIG=/usr/bin/llvm-config-7 
 ```
 
-Add a `.pre-commit-config.yaml` file.
-[Here is the contents](./.pre-commit-config.yaml)
+### Install
 
-#### Setup the pre-commit hooks
+Clone the repo and install 3rd-party libraries.
 
-```sh
-pipenv run setup_dev
+```bash
+$ git clone https://www.github.com/ildoonet/tf-pose-estimation
+$ cd tf-pose-estimation
+$ pip3 install -r requirements.txt
 ```
 
-Ready? Time to check git pre-commit hook works as expected!
-
-run:
-
-```sh
-git commit README.md -m "test commit"
+Build c++ library for post processing. See : https://github.com/ildoonet/tf-pose-estimation/tree/master/tf_pose/pafprocess
+```
+$ cd tf_pose/pafprocess
+$ swig -python -c++ pafprocess.i && python3 setup.py build_ext --inplace
 ```
 
-> TIP! If this is the first time you run this, it will take 5-9 minutes depending on your local laptop or workstation's cpu/RAM horsepower.
+### Package Install
 
-You should see something like this output in your terminal window.
+Alternatively, you can install this repo as a shared package using pip.
 
-![pre-commit hook runs for the first time](./doc/images/pre-commit-hook-first-time-output.jpg)
+```bash
+$ git clone https://www.github.com/ildoonet/tf-pose-estimation
+$ cd tf-pose-estimation
+$ python setup.py install  # Or, `pip install -e .`
+```
 
-Yay!!!
+## Models & Performances
 
-After you've run pre-commit the first time, subsequent commit's will be `fast` ( seconds ).
+See [experiments.md](./etc/experiments.md)
 
-The output is less verbose and like I said, it will be much much faster!
+### Download Tensorflow Graph File(pb file)
 
-![pre-commit hook running thereafter](./doc/images/pre-commit-hook-normal-run.png)
+Before running demo, you should download graph files. You can deploy this graph on your mobile or other platforms.
 
-## Logging
+- cmu (trained in 656x368)
+- mobilenet_thin (trained in 432x368)
+- mobilenet_v2_large (trained in 432x368)
+- mobilenet_v2_small (trained in 432x368)
 
-Logs provide visibility into the behavior of a running app. Logs are the stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services.
+CMU's model graphs are too large for git, so I uploaded them on an external cloud. You should download them if you want to use cmu's original model. Download scripts are provided in the model folder.
 
-<details><summary><strong>Learn more about logging</strong></summary>
+```
+$ cd models/graph/cmu
+$ bash download.sh
+```
 
-> A [twelve-factor app[(https://12factor.net/logs)] never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`. During local development, the developer will view this stream in the foreground of their terminal to observe the app’s behavior.
+## Demo
 
-> In staging or production deploys, each process’ stream will be captured by the execution environment, collated together with all other streams from the app, and routed to one or more final destinations for viewing and long-term archival. These archival destinations are not visible to or configurable by the app, and instead are completely managed by the execution environment.
+### Test Inference
 
-### Motivation to instrument logging in your code
+You can test the inference feature with a single image.
 
-> Diagnostic logging records events related to the application’s operation. If a user calls in to report an error, for example, the logs can be searched for context.
+```
+$ python run.py --model=mobilenet_thin --resize=432x368 --image=./images/p1.jpg
+```
 
-> Audit logging records events for business analysis. A user’s transactions can be extracted and combined with other user details for reports or to optimize a business goal.
+The image flag MUST be relative to the src folder with no "~", i.e:
+```
+--image ../../Desktop
+```
 
-[The Hitchhiker's Guide to Python: Logging](https://docs.python-guide.org/writing/logging/)
+Then you will see the screen as below with pafmap, heatmap, result and etc.
 
-</details>
+![inferent_result](./etcs/inference_result2.png)
 
-## Start Test Driven Development
+### Realtime Webcam
 
-### Red-Green-Refactoring.
+```
+$ python run_webcam.py --model=mobilenet_thin --resize=432x368 --camera=0
+```
 
-There are 5 basic steps as illustrated in Figure 1. below.
+Apply TensoRT 
 
-![5 steps Red-Green-Refactor cycle of Test Driven Devlopment](./doc/images/tdd-red-green-refactoring-v8.jpg)
+```
+$ python run_webcam.py --model=mobilenet_thin --resize=432x368 --camera=0 --tensorrt=True
+```
 
-**_Figure 1. The 5 stages in the Red-Green-Refactor software development cycle_**
+Then you will see the realtime webcam screen with estimated poses as below. This [Realtime Result](./etcs/openpose_macbook13_mobilenet2.gif) was recored on macbook pro 13" with 3.1Ghz Dual-Core CPU.
 
-Requests originate from the BDD / Agile Design phase/thinking sessions.
+## Python Usage
 
-Common requests are new feature stories or issue/bug fixes.
+This pose estimator provides simple python classes that you can use in your applications.
 
-These are the 5 steps:
+See [run.py](run.py) or [run_webcam.py](run_webcam.py) as references.
 
-1. Pick a request from your project management system [5]
+```python
+e = TfPoseEstimator(get_graph_path(args.model), target_size=(w, h))
+humans = e.inference(image)
+image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
+```
 
-   1. Action it! by Read, understand the request
+If you installed it as a package,
 
-1. Write a test to reflect the requirement
-   1. run test it must fail!! `(Red)`
-1. Write the code
-   1. run test - code until test passes `(Green)`
-1. refine, cleanup code `(Refactor)`
-   1. run test - if fails continue to refactor till it passes
-1. rinse, lather, repeat.
+```python
+import tf_pose
+coco_style = tf_pose.infer(image_path)
+```
 
-### Sometimes tests expect exctpions so how to make them not fail.
+## ROS Support
 
-How to properly assert that an exception gets raised in pytest?
+See : [etcs/ros.md](./etcs/ros.md)
 
-According to this [Stackoverflow post](https://stackoverflow.com/questions/23337471/how-to-properly-assert-that-an-exception-gets-raised-in-pytest) Pytest has 2 ways to accomadate this:
+## Training
 
-1. Using `pytest.raises` is likely to be better for cases where you are testing exceptions your own code is deliberately raising
+See : [etcs/training.md](./etcs/training.md)
 
-1. using `@pytest.mark.xfail` with a check function is probably better for something like documenting unfixed bugs (where the test describes what "should" happen) or bugs in dependencies.
+## References
 
-## Foot notes
-
-[5] Project management tool include:
-
-- Jira
-- Pivotal Tracker
-- ZenHug
-- GitHub issues
-- other
-
-# Resources
-
-[Python Testing with pytest: Simple, Rapid, Effective, and Scalable.](https://pragprog.com/book/bopytest/python-testing-with-pytest) Okken, Brian. Pragmatic Bookshelf.
-
-# License
-
-This code is licensed under the Apache License, Version 2. Separate third-party code objects invoked within this code pattern are licensed by their respective providers pursuant to their own separate licenses. Contributions are subject to the [Developer Certificate of Origin, Version 1.1](https://developercertificate.org/) and the [Apache License, Version 2](https://www.apache.org/licenses/LICENSE-2.0.txt).
-
-[Apache License FAQ](https://www.apache.org/foundation/license-faq.html#WhatDoesItMEAN)
+See : [etcs/reference.md](./etcs/reference.md)
